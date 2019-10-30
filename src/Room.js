@@ -8,24 +8,21 @@ class Room extends Component {
         const roomId = this.props.match.params.room
         socket.emit('join', roomId)
 
-
-
-        let mediaRecorder
-        let audioPermission = false
+        this.audioPermission = false
 
         navigator
             .mediaDevices
             .getUserMedia({ audio: true })
             .then(stream => {
-                audioPermission = true
-                mediaRecorder = new MediaRecorder(stream)
+                this.audioPermission = true
+                this.mediaRecorder = new MediaRecorder(stream)
                 let chunks = []
 
-                mediaRecorder.ondataavailable = data => {
+                this.mediaRecorder.ondataavailable = data => {
                     //data received
                     chunks.push(data.data)
                 }
-                mediaRecorder.onstop = () => {
+                this.mediaRecorder.onstop = () => {
                     // data stopped
                     const reader = new window.FileReader()
                     const blob = new Blob(chunks, { type: 'audio/ogg; codec=opus' })
@@ -33,15 +30,15 @@ class Room extends Component {
                     reader.onloadend = () => {
                         socket.emit('sendAudio', {
                             data: reader.result,
-                            //room: selectedRoom
+                            room: roomId
                         })
                     }
 
                     chunks = []
                 }
             }, err => {
-                mediaRecorder = null
-                audioPermission = false
+                this.mediaRecorder = null
+                this.audioPermission = false
             })
 
 
@@ -49,12 +46,14 @@ class Room extends Component {
 
         this.handleKey = this.handleKey.bind(this)
         this.renderMessage = this.renderMessage.bind(this)
+        this.mouseUp = this.mouseUp.bind(this)
+        this.mouseDown = this.mouseDown.bind(this)
     }
     mouseUp() {
-
+        this.mediaRecorder.stop()
     }
     mouseDown() {
-
+        this.mediaRecorder.start()
     }
 
     handleKey(e) {
@@ -69,7 +68,7 @@ class Room extends Component {
     renderContent(msg) {
         return (msg.msgType === 'text')
             ? msg.message
-            : <audio src={msg.message} controls="true"></audio>
+            : <audio src={msg.message} controls={true}></audio>
     }
     renderMessage(msg) {
         return (
@@ -92,7 +91,7 @@ class Room extends Component {
                     <form id="email-form" name="email-form" data-name="Email Form" className="form">
                         <textarea id="msg" name="msg" maxLength={5000} placeholder="Digite sua mensagem e pressione &lt;Enter&gt;"
                             autoFocus={true} className="msg w-input" onKeyUp={this.handleKey} ref={ref => this.msg = ref}></textarea>
-                        <button type="button" className="send-audio w-button">Enviar<br />Áudio</button>
+                        <button type="button" className="send-audio w-button" onMouseDown={this.mouseDown} onMouseUp={this.mouseUp}>Enviar<br />Áudio</button>
                     </form>
                 </div>
             </div>
