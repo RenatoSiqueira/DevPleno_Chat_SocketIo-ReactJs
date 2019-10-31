@@ -24,6 +24,7 @@ class Rooms extends Component {
         socket.on('roomList', rooms => this.setState({ rooms: rooms }))
 
         socket.on('newMsg', msg => {
+
             if (!this.state.msgs[msg.room]) {
                 const msgs = { ...this.state.msgs }
                 msgs[msg.room] = [msg]
@@ -32,6 +33,18 @@ class Rooms extends Component {
                 const msgs = { ...this.state.msgs }
                 msgs[msg.room].push(msg)
                 this.setState({ msgs })
+            }
+
+            if (msg.room !== this.roomId) {
+                const room = this.state.rooms.find(room => room._id === this.roomId)
+                const ind = this.state.rooms.indexOf(room)
+                const rooms = [...this.state.rooms]
+                if (!room.count) {
+                    room.count = 0
+                }
+                room.count++
+                rooms[ind] = room
+                this.setState({ rooms })
             }
         })
 
@@ -61,7 +74,9 @@ class Rooms extends Component {
                             this.state.rooms.map(room => {
                                 return (
                                     <li className="room-item" key={room._id}>
-                                        <Link to={`/rooms/${room._id}`}>{room.name}</Link>
+                                        <Link to={`/rooms/${room._id}`}>
+                                            {room.name} {!!room.count && <span>({room.count})</span>}
+                                        </Link>
                                     </li>
                                 )
                             })
@@ -70,7 +85,7 @@ class Rooms extends Component {
                     <div className="add-room" onClick={this.addNewRoom}>+</div>
                 </div>
                 <Route path='/rooms' exact component={SelectRoom} />
-                <Route path='/rooms/:room' render={(props) => <Room {...props} socket={this.socket} msgs={this.state.msgs} />} />
+                <Route path='/rooms/:room' render={(props) => <Room {...props} socket={this.socket} msgs={this.state.msgs} setRoom={(roomId => this.roomId = roomId)} />} />
             </div>
         )
     }

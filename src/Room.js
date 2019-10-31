@@ -7,6 +7,8 @@ class Room extends Component {
         const socket = this.props.socket
         this.roomId = this.props.match.params.room
         const roomId = this.roomId
+        this.props.setRoom(this.roomId)
+
         socket.emit('join', roomId)
 
         this.audioPermission = false
@@ -53,6 +55,7 @@ class Room extends Component {
     componentWillReceiveProps(newProps) {
         if (newProps.match.params.room && this.roomId !== newProps.match.params.room) {
             this.roomId = newProps.match.params.room
+            this.props.setRoom(this.roomId)
             this.props.socket.emit('join', this.roomId)
         }
     }
