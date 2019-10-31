@@ -5,7 +5,8 @@ class Room extends Component {
         super(props)
 
         const socket = this.props.socket
-        const roomId = this.props.match.params.room
+        this.roomId = this.props.match.params.room
+        const roomId = this.roomId
         socket.emit('join', roomId)
 
         this.audioPermission = false
@@ -30,7 +31,7 @@ class Room extends Component {
                     reader.onloadend = () => {
                         socket.emit('sendAudio', {
                             data: reader.result,
-                            room: roomId
+                            room: this.roomId
                         })
                     }
 
@@ -48,6 +49,12 @@ class Room extends Component {
         this.renderMessage = this.renderMessage.bind(this)
         this.mouseUp = this.mouseUp.bind(this)
         this.mouseDown = this.mouseDown.bind(this)
+    }
+    componentWillReceiveProps(newProps) {
+        if (newProps.match.params.room && this.roomId !== newProps.match.params.room) {
+            this.roomId = newProps.match.params.room
+            this.props.socket.emit('join', this.roomId)
+        }
     }
     mouseUp() {
         this.mediaRecorder.stop()

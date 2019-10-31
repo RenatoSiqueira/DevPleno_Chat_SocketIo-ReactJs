@@ -35,19 +35,6 @@ class Rooms extends Component {
             }
         })
 
-        /*
-        socket.on('newAudio', msg => {
-            if (selectedRoom === msg.room) {
-                addMsg(msg)
-            } else {
-                // atualizar contador de msgs nao lidas
-                const id = msg.room
-                let count = parseInt($('#' + id + ' .notifications span').text())
-                count++
-                $('#' + id + ' .notifications span').text(count)
-            }
-        })
-        */
         socket.on('msgsList', msgs => {
             if (msgs.length > 0) {
                 const msgsTmp = { ...this.state.msgs }
@@ -57,6 +44,12 @@ class Rooms extends Component {
         })
 
         this.socket = socket
+        this.addNewRoom = this.addNewRoom.bind(this)
+    }
+    addNewRoom() {
+        const roomName = prompt('Informe o nome da sala')
+        if (roomName)
+            this.socket.emit('addRoom', roomName)
     }
     render() {
         return (
@@ -74,7 +67,7 @@ class Rooms extends Component {
                             })
                         }
                     </ul>
-                    <div className="add-room">+</div>
+                    <div className="add-room" onClick={this.addNewRoom}>+</div>
                 </div>
                 <Route path='/rooms' exact component={SelectRoom} />
                 <Route path='/rooms/:room' render={(props) => <Room {...props} socket={this.socket} msgs={this.state.msgs} />} />
