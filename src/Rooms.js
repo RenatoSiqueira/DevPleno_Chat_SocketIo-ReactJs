@@ -36,7 +36,7 @@ class Rooms extends Component {
             }
 
             if (msg.room !== this.roomId) {
-                const room = this.state.rooms.find(room => room._id === this.roomId)
+                const room = this.state.rooms.find(room => room._id === msg.room)
                 const ind = this.state.rooms.indexOf(room)
                 const rooms = [...this.state.rooms]
                 if (!room.count) {
@@ -57,12 +57,29 @@ class Rooms extends Component {
         })
 
         this.socket = socket
+
         this.addNewRoom = this.addNewRoom.bind(this)
+        this.setRoom = this.setRoom.bind(this)
     }
     addNewRoom() {
         const roomName = prompt('Informe o nome da sala')
         if (roomName)
             this.socket.emit('addRoom', roomName)
+    }
+    setRoom(roomId) {
+        this.roomId = roomId
+        this.setState({ roomId })
+
+        const room = this.state.rooms.find(room => room._id === roomId)
+        if (room) {
+            const ind = this.state.rooms.indexOf(room)
+            const rooms = [...this.state.rooms]
+            if (room.count) {
+                room.count = 0
+            }
+            rooms[ind] = room
+            this.setState({ rooms })
+        }
     }
     render() {
         return (
@@ -75,7 +92,7 @@ class Rooms extends Component {
                                 return (
                                     <li className="room-item" key={room._id}>
                                         <Link to={`/rooms/${room._id}`}>
-                                            {room.name} {!!room.count && <span>({room.count})</span>}
+                                            {room._id === this.state.roomId && '>>'} {room.name} {!!room.count && <span>({room.count})</span>}
                                         </Link>
                                     </li>
                                 )
@@ -85,7 +102,7 @@ class Rooms extends Component {
                     <div className="add-room" onClick={this.addNewRoom}>+</div>
                 </div>
                 <Route path='/rooms' exact component={SelectRoom} />
-                <Route path='/rooms/:room' render={(props) => <Room {...props} socket={this.socket} msgs={this.state.msgs} setRoom={(roomId => this.roomId = roomId)} />} />
+                <Route path='/rooms/:room' render={(props) => <Room {...props} socket={this.socket} msgs={this.state.msgs} setRoom={this.SelectRoom} />} />
             </div>
         )
     }
