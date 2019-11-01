@@ -48,6 +48,28 @@ class Rooms extends Component {
             }
         })
 
+        socket.on('newAudio', msg => {
+            if (!this.state.msgs[msg.room]) {
+                const msgs = { ...this.state.msgs }
+                msgs[msg.room] = [msg]
+                this.setState({ msgs })
+            } else {
+                const msgs = { ...this.state.msgs }
+                msgs[msg.room].push(msg)
+                this.setState({ msgs })
+            }
+
+            const room = this.state.rooms.find(room => room._id === msg.room)
+            const ind = this.state.rooms.indexOf(room)
+            const rooms = [...this.state.rooms]
+            if (!room.count) {
+                room.count = 0
+            }
+            room.count++
+            rooms[ind] = room
+            this.setState({ rooms })
+        })
+
         socket.on('msgsList', msgs => {
             if (msgs.length > 0) {
                 const msgsTmp = { ...this.state.msgs }
